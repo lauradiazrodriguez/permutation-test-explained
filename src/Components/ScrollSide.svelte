@@ -1,28 +1,26 @@
-<script>
+<script lang="ts"> 
   import Scrolly from "./Scrolly.svelte";
   import katexify from "../katexify";
   import { select, selectAll } from "d3-selection";
+  import { fly, draw } from "svelte/transition";
+  import { tweened } from "svelte/motion";
 
   // scroll iterator
   let value;
 
   // Paragraph text for scrolly
   $: steps = [
-    `<p>
-      Imagine you're an antique jewelry seller specializing in rare and vintage 
-      diamonds. One day, you're approached by a supplier offering a new polishing 
-      substance that promises to enhance the brilliance of old diamonds. You're 
-      intrigued but skeptical. To make an informed decision, you decide to conduct
-      an experiment with statistics.
-    </p>`,
-
-    `<p>
-        In statistical testing, we structure experiments in terms of null & 
-        alternative hypotheses. Your test will have the following hypothesis 
-        schema:<br><br>
+      `<p>
+        Imagine you're an antique jewelry seller specializing in rare and vintage 
+        diamonds. One day, you're approached by a supplier offering a new polishing 
+        substance that promises to enhance the brilliance of old diamonds. You're 
+        intrigued but skeptical. To make an informed decision, you decide to conduct
+        an experiment using statistics.
+        <br><br>In statistical testing, we structure experiments in terms of null & 
+        alternative hypotheses. Your test will have the following hypothesis:<br><br>
         &Eta;<sub>0</sub>: &mu;<sub>treatment</sub> <= &mu;<sub>control</sub>
-				<br>
-				&Eta;<sub>A</sub>: &mu;<sub>treatment</sub> >  &mu;<sub>control</sub>
+        <br>
+        &Eta;<sub>A</sub>: &mu;<sub>treatment</sub> >  &mu;<sub>control</sub>
         <br><br>Your null hypothesis claims that the new polishing substance does not increase the brilliance of old diamonds. The alternative hypothesis claims the opposite; new polishing substance yields superior diamond shine. 
       </p>`,
 
@@ -30,8 +28,8 @@
       <p>
         In your collection, you have 20 vintage diamonds. You randomly split them 
         into two groups:
-        <br><br>Group A: 10 diamonds polished with your usual method.
-        <br><br>Group B: 10 diamonds polished with the new substance.
+        <br><br>Group A: 10 diamonds to be polished with your usual method.
+        <br><br>Group B: 10 diamonds to be polished with the new substance.
         <br><br>After polishing, you evaluate the brilliance of each diamond, 
         assigning a score based on their sparkle and shine.
       </p>`,
@@ -39,9 +37,9 @@
     `<h1 class='step-title'>Observing the Results</h1>
       <p>
         The average brilliance score for diamonds polished with your usual method is 50, 
-        and for those polished with the new substance, it's 55. The new substance seems 
-        promising, but you need to determine if this difference is genuinely due to the 
-        polishing substance or if it could have occurred by chance.
+        and for those polished with the new substance, it's 55. 
+        <br><br>The new substance seems promising, but you need to determine if 
+        this difference is genuinely due to the polishing substance or if it could have occurred by chance.
       </p>`,
 
     `<h1 class='step-title'>The Permutation Test</h1>
@@ -98,17 +96,82 @@
 
   const target2event = {
     0: () => {
-      // console.log('0' )
+      const svg = select("#chart1")
+
+      const diamondPositions = [];
+      const diamondSize = 40; // Adjust the size if needed
+      const radius = diamondSize / 2;
+
+      for (let i = 0; i < 20; i++) {
+        let xOffset, yOffset, isOverlap;
+
+        do {
+          isOverlap = false;
+          // Random position around (250, 250) within a range
+          xOffset = 250 + (Math.random() * 200 - 100);
+          yOffset = 250 + (Math.random() * 200 - 100);
+
+          // Check for overlap with existing diamonds
+          for (let pos of diamondPositions) {
+            const dx = xOffset - pos[0];
+            const dy = yOffset - pos[1];
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < diamondSize) {
+              isOverlap = true;
+              break;
+            }
+          }
+        } while (isOverlap);
+
+        diamondPositions.push([xOffset, yOffset]);
+
+        svg.append("path")
+          .attr("d", "M17 20, L40 20, L50 40, L27 60, L5 40, Z M5 40, L50 40, M27 60, L40 20, M27 60, L17 20, M22 40, L28 21, L33 40")
+          .attr("transform", `translate(${xOffset}, ${yOffset}) scale(0.5)`)
+          .attr("style", "fill:lightblue; stroke:grey; stroke-width:1");
+      }
+
+      select("#chart1").style("background-color", "violet");
+
     },
+
     1: () => {
       select("#chart1").style("background-color", "red");
-      select("#chart2").style("background-color", "green");
     },
 
     2: () => {
       select("#chart1").style("background-color", "purple");
-      select("#chart2").style("background-color", "coral");
     },
+
+    3: () => {
+      select("#chart1").style("background-color", "violet");
+    },
+
+    4: () => {
+      select("#chart1").style("background-color", "red");
+    },
+
+    5: () => {
+      select("#chart1").style("background-color", "purple");
+    },
+
+    6: () => {
+      select("#chart1").style("background-color", "violet");
+    },
+
+    7: () => {
+      select("#chart1").style("background-color", "red");
+    },
+
+    8: () => {
+      select("#chart1").style("background-color", "purple");
+    },
+
+    9: () => {
+      select("#chart1").style("background-color", "violet");
+    },
+
   };
 
   $: if (typeof value !== "undefined") target2event[value]();
@@ -130,9 +193,6 @@
     <div class="charts-container">
       <div class="chart-one">
         <svg id="chart1" />
-      </div>
-      <div class="chart-two">
-        <svg id="chart2" />
       </div>
     </div>
   </div>
@@ -167,11 +227,8 @@
     display: grid;
     width: 50%;
     grid-template-columns: 100%;
-    grid-row-gap: 2rem;
-    grid-column-gap: 0rem;
-    grid-template-rows: repeat(2, 1fr);
     height: 85vh;
-    border: 3px solid black;
+    border: 0px;
   }
 
   .section-container {
@@ -191,20 +248,19 @@
   .step-content {
     font-size: 18px;
     background: var(--bg);
-    color: #ccc;
-    border-radius: 1px;
-    padding: 0.5rem 1rem;
+    color: #ccc; 
+    padding: 1rem 1rem;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    transition: background 500ms ease;
+    transition: background 400ms ease;
     text-align: left;
     width: 75%;
     margin: auto;
     max-width: 500px;
     font-family: var(--font-main);
     line-height: 1.3;
-    border: 5px solid var(--default);
+    border: 0px;
   }
 
   .step.active .step-content {
