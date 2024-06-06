@@ -1,12 +1,126 @@
-<script lang="ts"> 
+<script>
   import Scrolly from "./Scrolly.svelte";
-  import katexify from "../katexify";
   import { select, selectAll } from "d3-selection";
-  import { fly, draw } from "svelte/transition";
-  import { tweened } from "svelte/motion";
+  import { scaleLinear } from "d3-scale";
+  import { tweened } from 'svelte/motion';
+  import { cubicOut } from 'svelte/easing';
 
-  // scroll iterator
-  let value;
+  // find width of svg and use it
+  let xScale = scaleLinear().domain([0, 396]).range([0, 511]);
+
+  let data = [
+    {x: 250, y: 50},
+    {x: 345, y: 82},
+    {x: 415, y: 150},
+    {x: 450, y: 245},
+    {x: 415, y: 340},
+    {x: 345, y: 408},
+    {x: 250, y: 470},
+    {x: 155, y: 408},
+    {x: 85, y: 340},
+    {x: 50, y: 245},
+    {x: 85, y: 150},
+    {x: 155, y: 82},
+    {x: 250, y: 120},
+    {x: 320, y: 180},
+    {x: 380, y: 250},
+    {x: 320, y: 320},
+    {x: 250, y: 400},
+    {x: 180, y: 320},
+    {x: 120, y: 250},
+    {x: 180, y: 180}
+  ];
+
+  let twoCoords = [
+    // Group 1
+    { x: 50, y: 80 },
+    { x: 130, y: 180 },
+    { x: 130, y: 100 },
+    { x: 70, y: 200 },
+    { x: 110, y: 250 },
+    { x: 50, y: 300 },
+    { x: 90, y: 350 },
+    { x: 130, y: 400 },
+    { x: 70, y: 450 },
+    { x: 110, y: 500 },
+
+    // Group 2
+    { x: 350, y: 80 },
+    { x: 390, y: 150 },
+    { x: 430, y: 100 },
+    { x: 350, y: 200 },
+    { x: 410, y: 250 },
+    { x: 350, y: 300 },
+    { x: 390, y: 350 },
+    { x: 430, y: 400 },
+    { x: 370, y: 450 },
+    { x: 410, y: 500 }
+  ];
+
+  let currentCoords = data;
+
+  // Create tweened stores for each coordinate
+  //tweenedCoords = currentCoords.map(coord => ({
+  //  x: tweened(coord.x, { duration: 1000, easing: cubicOut }),
+  //  y: tweened(coord.y, { duration: 1000, easing: cubicOut })
+  //}));
+
+  let value = 0;
+
+  // helper for permuteDiamonds
+  function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  function permuteDiamonds(coords) {
+    const halfLength = Math.ceil(coords.length / 2);
+    const group1 = coords.slice(0, halfLength);
+    const group2 = coords.slice(halfLength);
+
+    const shuffledGroup1 = shuffleArray(group1.map(coord => ({ ...coord })));
+    const shuffledGroup2 = shuffleArray(group2.map(coord => ({ ...coord })));
+
+    return [...shuffledGroup1, ...shuffledGroup2];
+  }
+
+  // drawing diamonds
+  function drawDiamonds() {
+    const svg = select("#chart1");
+    const brilliance_score = [54, 55, 56, 54, 55, 56, 54, 55, 56, 55, 50, 55, 52, 49, 43, 50, 54, 51, 46, 50]
+    svg.selectAll("*").remove(); // Clear previous SVG elements to avoid drawing again
+
+    data.forEach((diamond, index) => {
+      const pos = [diamond.x, diamond.y];
+      const g = svg.append('g').attr('class', 'diamond').attr('transform', `translate(${pos[0]}, ${pos[1]}) `)
+
+      g.append('path')
+        .attr('class', 'diamond-path')
+        .attr('x', diamond.x)
+        .attr('y', diamond.y)
+        .attr('d', "M17 20, L40 20, L50 40, L27 60, L5 40, Z M5 40, L50 40, M27 60, L40 20, M27 60, L17 20, M22 40, L28 21, L33 40")
+        .attr('transform', `scale(1)`)
+        .attr('style', `fill:lightblue; stroke:grey; stroke-width:1`); 
+
+      const label = g.append('text')
+      label.text(brilliance_score[index]).attr('dy', 80).attr('dx', 12).attr('style', `fill:grey`);
+    });
+    }
+
+  function updateDiamonds(newCoords) {
+    // redraw dataset
+    currentCoords = newCoords;
+    selectAll('.diamond')
+    //  currentCoords.forEach((newCoord, i) => {
+    //  tweenedCoords[i].x.set(newCoord.x);
+    //  tweenedCoords[i].y.set(newCoord.y);});
+    .attr('transform', (d, i) => `translate(${currentCoords[i]['x']}, ${currentCoords[i]['y']}) scale(0.95)`);
+  }
+
+  // function to make random positins
 
   // Paragraph text for scrolly
   $: steps = [
@@ -30,155 +144,44 @@
         into two groups:
         <br><br>Group A: 10 diamonds to be polished with your usual method.
         <br><br>Group B: 10 diamonds to be polished with the new substance.
-        <br><br>After polishing, you evaluate the brilliance of each diamond, 
-        assigning a score based on their sparkle and shine.
-      </p>`,
-
-    `<h1 class='step-title'>Observing the Results</h1>
-      <p>
-        The average brilliance score for diamonds polished with your usual method is 50, 
-        and for those polished with the new substance, it's 55. 
+        <br><br> The average brilliance score for diamonds polished with your usual method is lower, 
+        than those polished with the new substance.
         <br><br>The new substance seems promising, but you need to determine if 
         this difference is genuinely due to the polishing substance or if it could have occurred by chance.
       </p>`,
 
     `<h1 class='step-title'>The Permutation Test</h1>
     <p>
-      To address this, you decide to use a permutation test. This test will help
-       you determine whether the observed difference in brilliance scores is 
-       statistically significant.
-    </p>`,
-
-    `<h1 class='step-title'>Step 1: Combining and Shuffling</h1>
-    <p>
       First, you combine all the brilliance scores into a single pool, 
       disregarding which polishing method was used. Then, you randomly 
       shuffle, which we call permuting, these scores and split them into 
       two new groups of 10 diamonds each.
-    </p>`,
-
-    `<h1 class='step-title'>Step 2: Calculating the Difference</h1>
-    <p>
-      For each permutation, you calculate the difference in average brilliance 
-      scores between the two new groups. This process is repeated many times 
-      (e.g., 10,000 permutations) to build a distribution of differences under 
-      the null hypothesis—that the polishing method doesn't affect the brilliance.
-    </p>`,
-
-    `<h1 class='step-title'>Step 3: Comparing the Observed Difference</h1>
-    <p>
-      Next, you compare your observed difference (55 - 50 = 5) to the 
-      distribution of differences from your permutations. You count how many 
-      times the permutation differences are equal to or greater than your 
-      observed difference.
-    </p>`,
-
-    `<h1 class='step-title'>Calculating the p-Value</h1>
-     <p>
-      The p-value represents the probability of obtaining an observed difference as extreme as, or more extreme than, what was actually observed, assuming the null hypothesis is true. In this context, it's the fraction of permutations where the difference in brilliance scores is 5 or more.
-      <br><br>For example, if only 100 out of 10,000 permutations result in a difference of 5 or more, the p-value would be 100/10,000 = 0.01.
-
-    </p>`,
-
-    `<h1 class='step-title'>Interpreting the Results</h1>
-      <p>
-        If only a small fraction of these permutations result in a difference of 5 or more, you can conclude that the observed difference is unlikely to have occurred by chance. This would suggest that the new polishing substance genuinely enhances the brilliance of the diamonds.
-        <br><br>However, if a large number of permutations result in a difference of 5 or more, the observed difference could easily occur by random chance, and you might reconsider the effectiveness of the new substance.
-        <br><br>We measure this statistically by using the p-value. If the p-value is very small (typically less than 0.05), it suggests that the observed difference is unlikely to have occurred by chance, indicating that the new polishing substance has a significant effect on the brilliance of the diamonds. However, if the p-value is large, it suggests that the observed difference could easily occur by random chance.
-    </p>`,
-
-  `<h1 class='step-title'>Decision Making</h1>
-    <p>
-      By comparing the observed difference to this distribution and calculating the p-value, you make an informed decision about the new polishing substance. Since the p-value is less than 0.05, you might adopt the new method, enhancing your reputation as a seller of the most brilliant antique diamonds.
-    </p>
-    `,
+    </p>`
   ];
 
   const target2event = {
     0: () => {
-      const svg = select("#chart1")
-
-      const diamondPositions = [];
-      const diamondSize = 40; // Adjust the size if needed
-      const radius = diamondSize / 2;
-
-      for (let i = 0; i < 20; i++) {
-        let xOffset, yOffset, isOverlap;
-
-        do {
-          isOverlap = false;
-          // Random position around (250, 250) within a range
-          xOffset = 250 + (Math.random() * 200 - 100);
-          yOffset = 250 + (Math.random() * 200 - 100);
-
-          // Check for overlap with existing diamonds
-          for (let pos of diamondPositions) {
-            const dx = xOffset - pos[0];
-            const dy = yOffset - pos[1];
-            const distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance < diamondSize) {
-              isOverlap = true;
-              break;
-            }
-          }
-        } while (isOverlap);
-
-        diamondPositions.push([xOffset, yOffset]);
-
-        svg.append("path")
-          .attr("d", "M17 20, L40 20, L50 40, L27 60, L5 40, Z M5 40, L50 40, M27 60, L40 20, M27 60, L17 20, M22 40, L28 21, L33 40")
-          .attr("transform", `translate(${xOffset}, ${yOffset}) scale(0.5)`)
-          .attr("style", "fill:lightblue; stroke:grey; stroke-width:1");
-      }
-
-      select("#chart1").style("background-color", "violet");
-
+      drawDiamonds();
+      currentCoords = twoCoords;
     },
-
     1: () => {
-      select("#chart1").style("background-color", "red");
+      updateDiamonds(currentCoords);
     },
-
     2: () => {
-      select("#chart1").style("background-color", "purple");
-    },
+      updateDiamonds(permuteDiamonds(currentCoords));
+    }
+  }
 
-    3: () => {
-      select("#chart1").style("background-color", "violet");
-    },
+  // Reactive function to redraw diamonds when scrolling
+  $: if (value !== undefined) {
+    target2event[value]?.();
+  
+  }
 
-    4: () => {
-      select("#chart1").style("background-color", "red");
-    },
-
-    5: () => {
-      select("#chart1").style("background-color", "purple");
-    },
-
-    6: () => {
-      select("#chart1").style("background-color", "violet");
-    },
-
-    7: () => {
-      select("#chart1").style("background-color", "red");
-    },
-
-    8: () => {
-      select("#chart1").style("background-color", "purple");
-    },
-
-    9: () => {
-      select("#chart1").style("background-color", "violet");
-    },
-
-  };
-
-  $: if (typeof value !== "undefined") target2event[value]();
+  
 </script>
 
 <section>
-  <!-- scroll container -->
   <div class="section-container">
     <div class="steps-container">
       <Scrolly bind:value>
@@ -191,18 +194,13 @@
       </Scrolly>
     </div>
     <div class="charts-container">
-      <div class="chart-one">
-        <svg id="chart1" />
-      </div>
+      <svg id="chart1">
     </div>
   </div>
-  <br /><br />
-
 </section>
 
 <style>
-  #chart1,
-  #chart2 {
+  #chart1 {
     width: 100%;
     height: 100%;
   }
@@ -211,23 +209,13 @@
     height: 100%;
     border: 3px solid skyblue;
   }
-  .chart-two {
-    width: 100%;
-    height: 100%;
-    border: 3px solid coral;
-  }
-  /* space after scroll is finished */
-  .spacer {
-    height: 40vh;
-  }
-
   .charts-container {
     position: sticky;
     top: 10%;
     display: grid;
     width: 50%;
     grid-template-columns: 100%;
-    height: 85vh;
+    height: 80vh;
     border: 0px;
   }
 
@@ -277,7 +265,7 @@
     z-index: 10;
   }
 
-  /* Comment out the following line to always make it 'text-on-top' */
+  /* Responsive adjustments for smaller screens */
   @media screen and (max-width: 950px) {
     .section-container {
       flex-direction: column-reverse;
@@ -305,7 +293,12 @@
     }
 
     .spacer {
-      height: 100vh;
+      height: 80vh;
     }
+  }
+
+
+  path.diamond {
+    transition: all 1s;
   }
 </style>
