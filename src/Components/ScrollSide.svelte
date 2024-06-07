@@ -65,9 +65,33 @@
   //  y: tweened(coord.y, { duration: 1000, easing: cubicOut })
   //}));
 
+  //tweenedCoords = tweened(currentCoords, {
+  //  duration: 500,
+  //  easing: linear,
+  // });
+
   let value = 0;
 
   // helper for permuteDiamonds
+  //function shuffleArray(array) {
+  //  for (let i = array.length - 1; i > 0; i--) {
+  //    const j = Math.floor(Math.random() * (i + 1));
+  //    [array[i], array[j]] = [array[j], array[i]];
+  //  }
+  //  return array;
+  //}
+
+  //function permuteDiamonds(coords) {
+  //  const halfLength = Math.ceil(coords.length / 2);
+  //  const group1 = coords.slice(0, halfLength);
+  //  const group2 = coords.slice(halfLength);
+
+  //  const shuffledGroup1 = shuffleArray(group1.map(coord => ({ ...coord })));
+  //  const shuffledGroup2 = shuffleArray(group2.map(coord => ({ ...coord })));
+
+  //  return [...shuffledGroup1, ...shuffledGroup2];
+  //}
+
   function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -77,14 +101,7 @@
   }
 
   function permuteDiamonds(coords) {
-    const halfLength = Math.ceil(coords.length / 2);
-    const group1 = coords.slice(0, halfLength);
-    const group2 = coords.slice(halfLength);
-
-    const shuffledGroup1 = shuffleArray(group1.map(coord => ({ ...coord })));
-    const shuffledGroup2 = shuffleArray(group2.map(coord => ({ ...coord })));
-
-    return [...shuffledGroup1, ...shuffledGroup2];
+    return shuffleArray(coords.map(coord => ({ ...coord })));
   }
 
   // drawing diamonds
@@ -110,15 +127,30 @@
     });
     }
 
+  const tweenedCoords = tweened(data, { duration: 400, easing: cubicOut });
+
   function updateDiamonds(newCoords) {
-    // redraw dataset
-    currentCoords = newCoords;
-    selectAll('.diamond')
-    //  currentCoords.forEach((newCoord, i) => {
-    //  tweenedCoords[i].x.set(newCoord.x);
-    //  tweenedCoords[i].y.set(newCoord.y);});
-    .attr('transform', (d, i) => `translate(${currentCoords[i]['x']}, ${currentCoords[i]['y']}) scale(0.95)`);
+    tweenedCoords.set(newCoords);
   }
+
+  $: currentCoords = $tweenedCoords;
+
+  $: if (currentCoords) {
+    const svg = select("#chart1");
+    svg.selectAll('.diamond')
+      .data(currentCoords)
+      .attr('transform', (d, i) => `translate(${currentCoords[i].x}, ${currentCoords[i].y})`);
+  }
+
+  //function updateDiamonds(newCoords) {
+    // redraw dataset
+  //  currentCoords = newCoords;
+  //  selectAll('.diamond')
+  //  //  currentCoords.forEach((newCoord, i) => {
+  //  //  tweenedCoords[i].x.set(newCoord.x);
+  //  //  tweenedCoords[i].y.set(newCoord.y);});
+  //  .attr('transform', (d, i) => `translate(${currentCoords[i]['x']}, ${currentCoords[i]['y']}) scale(0.95)`);
+  //}
 
   // function to make random positins
 
@@ -162,10 +194,9 @@
   const target2event = {
     0: () => {
       drawDiamonds();
-      currentCoords = twoCoords;
     },
     1: () => {
-      updateDiamonds(currentCoords);
+      updateDiamonds(twoCoords);
     },
     2: () => {
       updateDiamonds(permuteDiamonds(currentCoords));
@@ -295,10 +326,5 @@
     .spacer {
       height: 80vh;
     }
-  }
-
-
-  path.diamond {
-    transition: all 1s;
   }
 </style>
