@@ -4,9 +4,10 @@
   import { scaleLinear } from "d3-scale";
   import { tweened } from 'svelte/motion';
   import { cubicOut } from 'svelte/easing';
+  import { onMount } from 'svelte';
 
   // find width of svg and use it
-  let xScale = scaleLinear().domain([0, 396]).range([0, 511]);
+  let xScale = scaleLinear().domain([0, 511]).range([0, 511]);
 
   let data = [
     {x: 250, y: 50},
@@ -59,38 +60,9 @@
 
   let currentCoords = data;
 
-  // Create tweened stores for each coordinate
-  //tweenedCoords = currentCoords.map(coord => ({
-  //  x: tweened(coord.x, { duration: 1000, easing: cubicOut }),
-  //  y: tweened(coord.y, { duration: 1000, easing: cubicOut })
-  //}));
-
-  //tweenedCoords = tweened(currentCoords, {
-  //  duration: 500,
-  //  easing: linear,
-  // });
+  onMount(() => { updateDiamonds("init")})
 
   let value = 0;
-
-  // helper for permuteDiamonds
-  //function shuffleArray(array) {
-  //  for (let i = array.length - 1; i > 0; i--) {
-  //    const j = Math.floor(Math.random() * (i + 1));
-  //    [array[i], array[j]] = [array[j], array[i]];
-  //  }
-  //  return array;
-  //}
-
-  //function permuteDiamonds(coords) {
-  //  const halfLength = Math.ceil(coords.length / 2);
-  //  const group1 = coords.slice(0, halfLength);
-  //  const group2 = coords.slice(halfLength);
-
-  //  const shuffledGroup1 = shuffleArray(group1.map(coord => ({ ...coord })));
-  //  const shuffledGroup2 = shuffleArray(group2.map(coord => ({ ...coord })));
-
-  //  return [...shuffledGroup1, ...shuffledGroup2];
-  //}
 
   function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -104,33 +76,34 @@
     return shuffleArray(coords.map(coord => ({ ...coord })));
   }
 
-  // drawing diamonds
-  function drawDiamonds() {
-    const svg = select("#chart1");
-    const brilliance_score = [54, 55, 56, 54, 55, 56, 54, 55, 56, 55, 50, 55, 52, 49, 43, 50, 54, 51, 46, 50]
-    svg.selectAll("*").remove(); // Clear previous SVG elements to avoid drawing again
+  const tweenedCoords = tweened(data, { duration: 300, easing: cubicOut });
 
-    data.forEach((diamond, index) => {
-      const pos = [diamond.x, diamond.y];
-      const g = svg.append('g').attr('class', 'diamond').attr('transform', `translate(${pos[0]}, ${pos[1]}) `)
-
-      g.append('path')
-        .attr('class', 'diamond-path')
-        .attr('x', diamond.x)
-        .attr('y', diamond.y)
-        .attr('d', "M17 20, L40 20, L50 40, L27 60, L5 40, Z M5 40, L50 40, M27 60, L40 20, M27 60, L17 20, M22 40, L28 21, L33 40")
-        .attr('transform', `scale(1)`)
-        .attr('style', `fill:lightblue; stroke:grey; stroke-width:1`); 
-
-      const label = g.append('text')
-      label.text(brilliance_score[index]).attr('dy', 80).attr('dx', 12).attr('style', `fill:grey`);
-    });
-    }
-
-  const tweenedCoords = tweened(data, { duration: 400, easing: cubicOut });
-
+  // draw diamonds in init and update for all rest of coords
   function updateDiamonds(newCoords) {
-    tweenedCoords.set(newCoords);
+    // check if new param reflects first case, then draw first data
+    if (newCoords == "init") {
+      const svg = select("#chart1");
+      const brilliance_score = [54, 55, 56, 54, 55, 56, 54, 55, 56, 55, 50, 55, 52, 49, 43, 50, 54, 51, 46, 50]
+      svg.selectAll("*").remove(); // Clear previous SVG elements to avoid drawing again
+
+      data.forEach((diamond, index) => {
+        const pos = [diamond.x, diamond.y];
+        const g = svg.append('g').attr('class', 'diamond').attr('transform', `translate(${pos[0]}, ${pos[1]}) `)
+
+        g.append('path')
+          .attr('class', 'diamond-path')
+          .attr('x', diamond.x)
+          .attr('y', diamond.y)
+          .attr('d', "M17 20, L40 20, L50 40, L27 60, L5 40, Z M5 40, L50 40, M27 60, L40 20, M27 60, L17 20, M22 40, L28 21, L33 40")
+          .attr('transform', `scale(1)`)
+          .attr('style', `fill:lightblue; stroke:grey; stroke-width:1`); 
+
+        const label = g.append('text')
+        label.text(brilliance_score[index]).attr('dy', 80).attr('dx', 12).attr('style', `fill:grey`);
+      });
+    } else {
+      tweenedCoords.set(newCoords);
+    }
   }
 
   $: currentCoords = $tweenedCoords;
@@ -141,18 +114,6 @@
       .data(currentCoords)
       .attr('transform', (d, i) => `translate(${currentCoords[i].x}, ${currentCoords[i].y})`);
   }
-
-  //function updateDiamonds(newCoords) {
-    // redraw dataset
-  //  currentCoords = newCoords;
-  //  selectAll('.diamond')
-  //  //  currentCoords.forEach((newCoord, i) => {
-  //  //  tweenedCoords[i].x.set(newCoord.x);
-  //  //  tweenedCoords[i].y.set(newCoord.y);});
-  //  .attr('transform', (d, i) => `translate(${currentCoords[i]['x']}, ${currentCoords[i]['y']}) scale(0.95)`);
-  //}
-
-  // function to make random positins
 
   // Paragraph text for scrolly
   $: steps = [
@@ -176,29 +137,42 @@
         into two groups:
         <br><br>Group A: 10 diamonds to be polished with your usual method.
         <br><br>Group B: 10 diamonds to be polished with the new substance.
-        <br><br> The average brilliance score for diamonds polished with your usual method is lower, 
-        than those polished with the new substance.
+        <br><br> The average brilliance score for diamonds polished with your usual method is 50, 
+        and for those polished with the new substance, it's 55.
         <br><br>The new substance seems promising, but you need to determine if 
         this difference is genuinely due to the polishing substance or if it could have occurred by chance.
       </p>`,
 
     `<h1 class='step-title'>The Permutation Test</h1>
-    <p>
-      First, you combine all the brilliance scores into a single pool, 
-      disregarding which polishing method was used. Then, you randomly 
-      shuffle, which we call permuting, these scores and split them into 
-      two new groups of 10 diamonds each.
-    </p>`
+      <p>
+        First, you randomly shuffle, which we call permuting, these scores and 
+        split them into two new groups of 10 diamonds each. Then, you calculate 
+        the difference in average brilliance scores between the two new groups. 
+      </p>`,
+
+    `<h1 class='step-title'>More Permutations</h1>
+      <p>
+        This process is repeated many times (e.g., 10,000 permutations) to build a 
+        distribution of differences under the null hypothesis—that the polishing 
+        method doesn't affect the brilliance—like the one bellow.
+        <br><br>For each permutation, you calculate the difference in average brilliance 
+        scores between the two new groups. 
+      </p>`
+
+    
   ];
 
   const target2event = {
     0: () => {
-      drawDiamonds();
+      updateDiamonds(data);
     },
     1: () => {
       updateDiamonds(twoCoords);
     },
     2: () => {
+      updateDiamonds(permuteDiamonds(currentCoords));
+    },
+    3: () => {
       updateDiamonds(permuteDiamonds(currentCoords));
     }
   }

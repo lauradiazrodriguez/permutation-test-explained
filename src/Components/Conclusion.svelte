@@ -87,22 +87,10 @@
 <section id="conclusion">
   <div class="columns">
     <p class="body-text">
-      For each permutation, you calculate the difference in average brilliance 
-      scores between the two new groups. This process is repeated many times 
-      (e.g., 10,000 permutations) to build a distribution of differences under 
-      the null hypothesis—that the polishing method doesn't affect the brilliance.
-    </p>
-    <p class="body-text">
       Next, you compare your observed difference in brilliance average to the 
       distribution of differences from your permutations. You count how many 
       times the permutation differences are equal to or greater than your 
       observed difference.
-    </p>
-    <p class="body-text">
-      If only a small fraction of these permutations result in a difference 
-      equal to the one you observed, you can conclude that the observed difference 
-      is unlikely to have occurred by chance. This would suggest that the new 
-      polishing substance genuinely enhances the brilliance of the diamonds.
     </p>
     <p class="body-text">
       However, if a large number of permutations result in a difference 
@@ -111,10 +99,17 @@
       new substance.
     </p>
     <p class="body-text">
+      If only a small fraction of these permutations result in a difference 
+      equal to the one you observed, you can conclude that the observed difference 
+      is unlikely to have occurred by chance. This would suggest that the new 
+      polishing substance genuinely enhances the brilliance of the diamonds.
+    </p>
+    <p class="body-text">
       By comparing the observed difference to this distribution, you make 
-      an informed decision about the new polishing substance. Since the p-value is 
-      less than 0.05, you might adopt the new method, enhancing your reputation as 
-      a seller of the most brilliant antique diamonds.
+      an informed decision about the new polishing substance. If a small fraction 
+      of these permutations result in a difference equal to the one you observed,
+      you might adopt the new method, enhancing your reputation as a seller of 
+      the most brilliant antique diamonds.
     </p>
   </div>
   <div class="hist-container">
@@ -130,7 +125,7 @@
   .columns {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 0.8rem;
+    gap: 1.5rem;
   }
   .body-text {
     margin: 0;
