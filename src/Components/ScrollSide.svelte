@@ -257,7 +257,7 @@
   }
 
   .step.active .step-content {
-    background: #f1f3f3ee;
+    background: #f5f1f100;
     color: var(--squid-ink);
   }
 
