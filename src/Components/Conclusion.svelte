@@ -1,87 +1,5 @@
 <script>
-  import { onMount } from 'svelte';
-  import { select, scaleLinear, scaleBand, max, axisBottom, axisLeft } from 'd3';
-
-  const dataHist = [
-    { label: '1', value: 1 }, { label: '2', value: 3 }, { label: '3', value: 7 },
-    { label: '4', value: 12 }, { label: '5', value: 20 }, { label: '6', value: 30 },
-    { label: '7', value: 45 }, { label: '8', value: 50 }, { label: '9', value: 45 },
-    { label: '10', value: 30 }, { label: '11', value: 20 }, { label: '12', value: 12 },
-    { label: '13', value: 7 }, { label: '14', value: 3 }, { label: '15', value: 1 }
-  ];
-
-  let svg;
-
-  onMount(() => {
-    svg = select("#histogram");
-    drawHistogram();
-  });
-
-  function drawHistogram() {
-    svg.html(''); // Clear the SVG before redrawing
-    const margin = { top: 10, right: 30, bottom: 30, left: 40 };
-    const width = 1200 - margin.left - margin.right;
-    const height = 300 - margin.top - margin.bottom;
-
-    const xScale = scaleBand()
-      .domain(dataHist.map(d => d.label))
-      .range([0, width])
-      .padding(0.1);
-
-    const yScale = scaleLinear()
-      .domain([0, max(dataHist, d => d.value)])
-      .range([height, 0]);
-
-    const g = svg.append('g')
-      .attr('transform', `translate(${margin.left},${margin.top})`);
-
-    g.selectAll(".bar")
-      .data(dataHist)
-      .enter().append("rect")
-      .attr("class", "bar")
-      .attr("x", d => xScale(d.label))
-      .attr("y", d => yScale(d.value))
-      .attr("width", xScale.bandwidth())
-      .attr("height", d => height - yScale(d.value))
-      .attr("fill", "steelblue");
-
-    g.append("g")
-      .attr("transform", `translate(0,${height})`)
-      .call(axisBottom(xScale));
-
-    g.append("g")
-      .call(axisLeft(yScale));
-
-    // P-value line
-    const pValueCategory = '11'; // This should be a label from your `dataHist`
-    const pValueXPosition = xScale(pValueCategory) + xScale.bandwidth() / 2; // Centers the line in the band
-
-    g.append("line")
-      .attr("x1", pValueXPosition)
-      .attr("x2", pValueXPosition)
-      .attr("y1", 0)
-      .attr("y2", height)
-      .attr("stroke", "red")
-      .attr("stroke-dasharray", "5,5");
-
-    const legend = svg.append("g")
-      .attr("transform", `translate(${width - 160}, ${height + margin.top - 20})`); // Adjust position as needed
-
-    legend.append("line")
-      .attr("x1", 0)
-      .attr("x2", 30)
-      .attr("y1", -180)
-      .attr("y2", -180)
-      .attr("stroke", "red")
-      .attr("stroke-dasharray", "5,5");
-
-    legend.append("text")
-      .attr("x", 40)
-      .attr("y", -180)
-      .text("Observed difference")
-      .style("font-size", "12px")
-      .attr("alignment-baseline", "middle");
-  }
+    import Histogram from "/Users/lauradiaz/Desktop/DSC106_Final_Proj_Temp/src/Components/Histogram.svelte"
 </script>
 
 <section id="conclusion">
@@ -113,8 +31,15 @@
     </p>
   </div>
   <div class="hist-container">
-    <svg id="histogram" width="1200" height="300"></svg>
-    <button>Run Permutation Test</button>
+    <h1 class=hist-title>Permutation Test Histogram Generator</h1>
+    <h3 class=hist-subtitle>The pink shaded region represents the probability of obtaining an observed difference as extreme as, or more extreme than, what was actually observed, assuming the null hypothesis is true. In this context, it's the fraction of permutations where the difference in brilliance scores is 5 or more.</h3>
+    <Histogram></Histogram>
+  </div>
+  <div>
+    <p class="caveat-text">
+      This was not an exhaustive treatment of permutation testing, some things were left out. 
+      <br>But we hope it was helpful in explaining the permutation test.
+    </p>
   </div>
 </section>
 
@@ -133,4 +58,13 @@
   .hist-container {
     padding: 5rem 1rem;
   }
+  
+
+  .hist-title,
+  .hist-subtitle,
+  .caveat-text {
+    text-align: center;
+  }
+
+
 </style>

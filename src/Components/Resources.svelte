@@ -8,15 +8,6 @@
     <p class="resource-item">
       <a class="on-end" href="https://d3js.org/">D3.js</a>
       <span>(Mike Bostock & Philippe Rivière)</span>
-    </p>
-    <p class="resource-item">
-      <a class="on-end" href="https://layercake.graphics/">LayerCake</a>
-      <span>(Michael Keller)</span>
-    </p>
-    <p class="resource-item">
-      <a class="on-end" href="https://katex.org/">KaTeX</a>
-      <span>(Emily Eisenberg & Sophie Alpert)</span>
-    </p>
     <p class="resource-item">
       <a class="on-end" href="https://svelte.dev/">Svelte</a>
       <span>(Rich Harris)</span>

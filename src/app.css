@@ -1,0 +1,24 @@
+  /* ====================== */
+  /* VARIABLES */
+  /* ====================== */
+  html {
+    font-size: 16px;
+  }
+  
+  body {
+    margin: 0;
+    -webkit-font-smoothing: subpixel-antialiased;
+    -webkit-font-smoothing: antialiased;
+    color: var(--content);
+    background: linear-gradient(
+        217deg,
+        #80cdf759,
+        #f5f1f100 35.71%
+      ),
+      linear-gradient(
+        0deg,
+        #80cdf759,
+        #f5f1f100 10.71%
+      );
+    line-height: 1.5;
+  }
