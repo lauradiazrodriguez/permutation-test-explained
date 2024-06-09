@@ -1,5 +1,5 @@
 <script>
-    import Histogram from "/Users/lauradiaz/Desktop/DSC106_Final_Proj_Temp/src/Components/Histogram.svelte"
+    import Histogram from "./Histogram.svelte"
 </script>
 
 <section id="conclusion">
