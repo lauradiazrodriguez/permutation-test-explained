@@ -6,6 +6,8 @@
   import Conclusion from "./Components/Conclusion.svelte";
   import Resources from "./Components/Resources.svelte";
   import ScrollSide from "./Components/ScrollSide.svelte";
+
+  
 </script>
 
 <Meta />

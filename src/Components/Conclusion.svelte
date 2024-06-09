@@ -33,7 +33,7 @@
   <div class="hist-container">
     <h1 class=hist-title>Permutation Test Histogram Generator</h1>
     <h3 class=hist-subtitle>The pink shaded region represents the probability of obtaining an observed difference as extreme as, or more extreme than, what was actually observed, assuming the null hypothesis is true. In this context, it's the fraction of permutations where the difference in brilliance scores is 5 or more.</h3>
-    <Histogram></Histogram>
+    <Histogram />
   </div>
   <div>
     <p class="caveat-text">
